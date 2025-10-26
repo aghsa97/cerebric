@@ -1,103 +1,143 @@
-import Image from "next/image";
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { ArrowUpRight, HandHeart, HeartHandshake, MessageCircleWarning } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { WavyBackground } from "@/components/ui/wavy-background";
+import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
+
+import { CopyButton } from "@/components/CopyButton";
+import { RefineButton } from "@/components/RefineButton";
+
+import { check, getChromeVersion } from "@/lib/utils";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const [isSupported, setIsSupported] = useState(false);
+  const [isAvailable, setIsAvailableModels] = useState<string>("");
+
+  useEffect(() => {
+    setIsSupported(getChromeVersion(138));
+    (async () =>
+      setIsAvailableModels(await check())
+    )();
+  }, []);
+
+  return (
+    <WavyBackground className="w-full min-h-screen flex flex-col items-center">
+      <div className="h-20 w-full p-3 flex gap-1.5">
+        <Button size="sm" variant="outline" asChild>
+          <Link href="https://developer.chrome.com/docs/ai/prompt-api" target="_blank" rel="noopener noreferrer">
+            <HandHeart className="text-red-500" />
+            Feedback
+          </Link>
+        </Button>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          className="gap-2 flex items-center justify-center text-sm ml-auto"
+        >
+          <Link href="https://github.com/aghamou" target="_blank" rel="noopener noreferrer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" /><path d="M9 18c-4.51 2-5-2-7-2" /></svg>
+          </Link>
+        </Button>
+        <Button size="sm" variant="outline" asChild>
+          <Link href="https://developer.chrome.com/docs/ai/prompt-api" target="_blank" rel="noopener noreferrer">
+            Check API docs
+            <ArrowUpRight />
+          </Link>
+        </Button>
+      </div>
+      {isSupported ? <div className="w-full max-w-2xl px-3 md:px-0">
+        <Item variant="outline" className="bg-linear-to-br from-amber-950 to-zinc-950 border-none">
+          <ItemMedia variant="icon" className="bg-amber-900">
+            <MessageCircleWarning />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>
+              This is just a validation step.
+            </ItemTitle>
+            <ItemDescription>
+              We&apos;re building a full Chrome extension around this concept.
+            </ItemDescription>
+          </ItemContent>
+          <ItemActions>
+            <Button size="sm" variant="outline" asChild>
+              <Link href="https://cerebric.fillout.com/join-waitlist" target="_blank" rel="noopener noreferrer">
+                Join the waitlist
+                <ArrowUpRight />
+              </Link>
+            </Button>
+          </ItemActions>
+        </Item>
+      </div> : <div className="w-full max-w-4xl px-3 md:px-0">
+        <Item variant="outline" className="bg-linear-to-br from-red-950 to-zinc-950 border-none">
+          <ItemMedia variant="icon" className="bg-red-900">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.88 21.94 15.46 14" /><path d="M21.17 8H12" /><path d="M3.95 6.06 8.54 14" /><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /></svg>
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>It&apos;s not you, it&apos;s your browser, please use Chrome!</ItemTitle>
+            <ItemDescription>
+              If you&apos;re already using Chrome, make sure it&apos;s updated to Chrome 139 or newer.
+            </ItemDescription>
+          </ItemContent>
+          <ItemActions>
+            <Button size="sm" variant="outline" asChild>
+              <Link href="https://developer.chrome.com/docs/ai/prompt-api" target="_blank" rel="noopener noreferrer">
+                Check API docs
+                <ArrowUpRight />
+              </Link>
+            </Button>
+          </ItemActions>
+        </Item>
+      </div>
+      }
+      <main className="w-full max-w-2xl flex flex-1 flex-col gap-12 relative z-10 px-3 items-center justify-center mb-20">
+        <div className="flex flex-col mt-12 items-center gap-4">
+          <h1 className="text-center text-5xl md:text-7xl font-bold tracking-tighter">
+            Just a better prompt
+          </h1>
+          <h4 className="text-center text-sm md:text-base font-medium max-w-xl text-pretty md:text-nowrap">
+            Runs in your browser using Chrome&apos;s AI and
+            costs absolutely nothing.
+            <br />
+            No accounts, no paywalls, no BS.
+          </h4>
         </div>
+        {isSupported && isAvailable === "available" ?
+          <div className="group flex flex-col gap-2 pb-1.5 pr-1.5 bg-transparent backdrop-blur-3xl w-full rounded-lg border border-foreground/20 transition-all">
+            <div className="relative flex flex-1 items-center">
+              <Textarea
+                id="prompt-input"
+                placeholder="Start typing..."
+                className="resize-none border-none dark:bg-transparent focus-visible:border-none focus-visible:ring-0"
+              />
+            </div>
+            <div className="flex h-full p-0 justify-end items-end gap-2">
+              <CopyButton />
+              <RefineButton />
+            </div>
+          </div> : isSupported && isAvailable === "unavailable" ?
+            <div className="w-full max-w-md p-4 bg-linear-to-br from-red-950 to-zinc-950 border-none rounded-lg flex flex-col items-center gap-3">
+              <HeartHandshake className="text-red-500 size-8" />
+              <h3 className="text-center font-semibold text-lg">
+                The Language Model API is currently unavailable.
+              </h3>
+              <p className="text-center text-sm">
+                This feature relies on Chrome&apos;s experimental Language Model API, which is not always available. Please try again later.
+              </p>
+            </div> :
+            <Button variant={"outline"} size="lg" className="w-fit rounded-full" asChild>
+              <Link href="https://www.google.com/chrome/" target="_blank" rel="noopener noreferrer">
+                Get Google Chrome
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.88 21.94 15.46 14" /><path d="M21.17 8H12" /><path d="M3.95 6.06 8.54 14" /><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /></svg>
+              </Link>
+            </Button>
+        }
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    </WavyBackground >
   );
 }
