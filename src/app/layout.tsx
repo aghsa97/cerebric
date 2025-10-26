@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Head from "next/head";
 import { Rethink_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner"
 
@@ -22,6 +23,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${rethinkSans.className} dark`}>
+      <Head>
+        <meta
+          httpEquiv="origin-trial"
+          content="AiPi47YmW/8YPTgyxNWbX58BHRJUuQiWGYWejhPJ+XF3yvxigR9OpC/+gsh28IzDa5sq7dcw7yXl5zITCXWlswQAAABneyJvcmlnaW4iOiJodHRwczovL2NlcmVicmljLnZlcmNlbC5hcHA6NDQzIiwiZmVhdHVyZSI6IkFJUHJvbXB0QVBJTXVsdGltb2RhbElucHV0IiwiZXhwaXJ5IjoxNzc0MzEwNDAwfQ=="
+        />
+      </Head>
       <body
         className={`antialiased`}
       >
