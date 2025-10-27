@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Rethink_Sans } from "next/font/google";
+
+import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
 
 import "./globals.css";
@@ -31,6 +33,7 @@ export default function RootLayout({
       >
         {children}
         <Toaster position="bottom-center" richColors />
+        <Analytics />
       </body>
     </html>
   );
