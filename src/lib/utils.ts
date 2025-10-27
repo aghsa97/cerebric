@@ -165,5 +165,5 @@ export const getChromeVersion = (minVersion: number = 138): boolean => {
 
   const chromeVersion = parseInt(chromeVersionMatch[1], 10);
 
-  return chromeVersion > minVersion;
+  return chromeVersion >= minVersion;
 };

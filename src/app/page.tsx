@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, HandHeart, HeartHandshake, MessageCircleWarning } from "lucide-react";
+import { ArrowUpRight, HandHeart, HardDriveDownload, HeartHandshake, MessageCircleWarning } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,11 +13,20 @@ import { CopyButton } from "@/components/CopyButton";
 import { RefineButton } from "@/components/RefineButton";
 
 import { check, getChromeVersion } from "@/lib/utils";
+import { AnimatedCircularProgressBar } from "@/components/ui/animated-circular-progress-bar";
+import { useDownload } from "@/hooks/useDownload";
 
 export default function Home() {
 
   const [isSupported, setIsSupported] = useState(false);
-  const [isAvailable, setIsAvailableModels] = useState<string>("");
+  const [isAvailable, setIsAvailableModels] = useState<string>("downloadable");
+
+  const { progress, isDownloading, startDownload } = useDownload(550);
+
+  function download() {
+    startDownload();
+  }
+
 
   useEffect(() => {
     setIsSupported(getChromeVersion(138));
@@ -31,7 +40,7 @@ export default function Home() {
       <div className="h-20 w-full p-3 flex gap-1.5">
         <Button size="sm" variant="outline" asChild>
           <Link href="https://developer.chrome.com/docs/ai/prompt-api" target="_blank" rel="noopener noreferrer">
-            <HandHeart className="text-red-500" />
+            <HandHeart className="text-pink-800" />
             Feedback
           </Link>
         </Button>
@@ -81,7 +90,7 @@ export default function Home() {
           <ItemContent>
             <ItemTitle>It&apos;s not you, it&apos;s your browser, please use Chrome!</ItemTitle>
             <ItemDescription>
-              If you&apos;re already using Chrome, make sure it&apos;s updated to Chrome 139 or newer.
+              If you&apos;re already using Chrome, make sure it&apos;s updated to Chrome 138 or newer.
             </ItemDescription>
           </ItemContent>
           <ItemActions>
@@ -129,13 +138,26 @@ export default function Home() {
               <p className="text-center text-sm">
                 This feature relies on Chrome&apos;s experimental Language Model API, which is not always available. Please try again later.
               </p>
-            </div> :
-            <Button variant={"outline"} size="lg" className="w-fit rounded-full" asChild>
-              <Link href="https://www.google.com/chrome/" target="_blank" rel="noopener noreferrer">
-                Get Google Chrome
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.88 21.94 15.46 14" /><path d="M21.17 8H12" /><path d="M3.95 6.06 8.54 14" /><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /></svg>
-              </Link>
-            </Button>
+            </div> : isSupported && isAvailable === "downloadable" ?
+              <div>
+                <Button variant={"outline"} size="lg" className="w-fit rounded-full" onClick={download} disabled={isDownloading}>
+                  Download Language Model API
+                  {isDownloading ?
+                    <AnimatedCircularProgressBar value={progress}
+                      gaugePrimaryColor="#fbbf24"
+                      gaugeSecondaryColor="#374151"
+                      className="size-6 text-[10px] ml-2"
+                    /> :
+                    <HardDriveDownload />}
+                </Button>
+              </div>
+              :
+              <Button variant={"outline"} size="lg" className="w-fit rounded-full" asChild>
+                <Link href="https://www.google.com/chrome/" target="_blank" rel="noopener noreferrer">
+                  Get Google Chrome
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.88 21.94 15.46 14" /><path d="M21.17 8H12" /><path d="M3.95 6.06 8.54 14" /><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /></svg>
+                </Link>
+              </Button>
         }
       </main>
     </WavyBackground >
