@@ -129,7 +129,7 @@ export default function Home() {
                 <Textarea
                   id="prompt-input"
                   placeholder="Start typing..."
-                  className="resize-none border-none dark:bg-transparent focus-visible:border-none focus-visible:ring-0"
+                  className="min-h-16 resize-none border-none shadow-none dark:bg-transparent focus-visible:border-none focus-visible:ring-0"
                 />
               </div>
               <div className="flex h-full p-0 justify-end items-end gap-2">
