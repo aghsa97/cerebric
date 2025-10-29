@@ -7,9 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 type LanguageModelMessage = { role: string; content: string };
-type LanguageModelResponse = string;
 type LanguageModelType = {
-  prompt(messages: LanguageModelMessage[]): Promise<LanguageModelResponse>;
   promptStreaming(messages: LanguageModelMessage[]): AsyncIterable<string>;
   destroy(): void;
 };
@@ -23,7 +21,7 @@ declare global {
   }
 }
 
-const LanguageModel = (
+export const LanguageModel = (
   globalThis as typeof globalThis & {
     LanguageModel?: {
       availability?: () => Promise<string>;
@@ -32,8 +30,6 @@ const LanguageModel = (
     };
   }
 ).LanguageModel;
-
-let session: LanguageModelType | null = null;
 
 export async function check() {
   if ("LanguageModel" in self && LanguageModel?.availability) {
@@ -52,16 +48,7 @@ async function initLanguageModel() {
     toast.error("LanguageModel API is unavailable in this browser.");
     return;
   }
-  session = await LanguageModel.create({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    monitor(m: any) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      m.addEventListener("downloadprogress", (e: any) => {
-        console.log(`Downloaded ${e.loaded * 100}%`);
-        console.log(`Downloaded ${e.loaded}`);
-      });
-    },
-
+  const session = await LanguageModel.create({
     initialPrompts: [
       {
         role: "system",
@@ -80,7 +67,6 @@ finally, always output only the refined prompt without any additional commentary
   });
 
   console.log("LanguageModel initialized.");
-  toast.success("LanguageModel API initialized.");
   return session;
 }
 
@@ -96,17 +82,12 @@ export async function refinePrompt() {
     return;
   }
 
+  const session = await initLanguageModel();
   if (!session) {
-    await initLanguageModel();
-    if (!session) {
-      console.error("Cannot refine: LanguageModel API unavailable.");
-      toast.error("Cannot refine: LanguageModel API unavailable.");
-      return;
-    }
+    console.error("Cannot refine: LanguageModel API unavailable.");
+    toast.error("Cannot refine: LanguageModel API unavailable.");
+    return;
   }
-
-  // Disable UI and set initial message
-  textareaEl.value = "Refining prompt according to best practices…\n\n";
 
   try {
     const responseStream = session.promptStreaming([
@@ -132,7 +113,6 @@ export async function refinePrompt() {
   } finally {
     if (session) {
       session.destroy();
-      session = null;
     }
   }
 }

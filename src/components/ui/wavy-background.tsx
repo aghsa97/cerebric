@@ -22,7 +22,7 @@ export const WavyBackground = ({
   waveWidth?: number;
   backgroundFill?: string;
   blur?: number;
-  speed?: "slow" | "fast";
+  speed?: "slow" | "fast" | "thinking";
   waveOpacity?: number;
   [key: string]: unknown;
 }) => {
@@ -37,16 +37,26 @@ export const WavyBackground = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     canvas: any;
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const getSpeed = () => {
+
+  const currentSpeedRef = useRef(0.002); // Start at "fast" speed
+  const targetSpeedRef = useRef(0.002);
+
+  const getSpeed = (speed: "slow" | "fast" | "thinking") => {
     switch (speed) {
       case "slow":
         return 0.001;
       case "fast":
         return 0.002;
+      case "thinking":
+        return 0.0075;
       default:
         return 0.001;
     }
   };
+
+  useEffect(() => {
+    targetSpeedRef.current = getSpeed(speed);
+  }, [speed]);
 
   const init = () => {
     canvas = canvasRef.current;
@@ -71,14 +81,22 @@ export const WavyBackground = ({
     "#22d3ee",
   ];
   const drawWave = (n: number) => {
-    nt += getSpeed();
+    const diff = targetSpeedRef.current - currentSpeedRef.current;
+    if (Math.abs(diff) > 0.00001) {
+      currentSpeedRef.current += diff * 0.02; // Smooth interpolation factor
+    } else {
+      currentSpeedRef.current = targetSpeedRef.current;
+    }
+
+    nt += currentSpeedRef.current;
+
     for (i = 0; i < n; i++) {
       ctx.beginPath();
       ctx.lineWidth = waveWidth || 50;
       ctx.strokeStyle = waveColors[i % waveColors.length];
       for (x = 0; x < w; x += 5) {
         const y = noise(x / 800, 0.3 * i, nt) * 100;
-        ctx.lineTo(x, y + h * 0.5); // adjust for height, currently at 50% of the container
+        ctx.lineTo(x, y + h * 0.5);
       }
       ctx.stroke();
       ctx.closePath();

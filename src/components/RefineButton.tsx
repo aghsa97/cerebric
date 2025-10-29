@@ -5,8 +5,10 @@ import { Button } from './ui/button'
 import { refinePrompt } from '@/lib/utils'
 import { Spinner } from './ui/spinner';
 
-function RefineButton() {
-    const [isRefining, setIsRefining] = React.useState(false);
+
+
+function RefineButton(isRefiningProps: { isRefining: boolean, setIsRefining: React.Dispatch<React.SetStateAction<boolean>> }) {
+    const { isRefining, setIsRefining } = isRefiningProps;
 
     const handleRefine = async () => {
         if (isRefining) return;

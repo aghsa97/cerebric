@@ -2,31 +2,37 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, HandHeart, HardDriveDownload, HeartHandshake, MessageCircleWarning } from "lucide-react";
+import { ArrowUpRight, HandHeart, HardDriveDownload, HeartHandshake, MessageCircleWarning, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { WavyBackground } from "@/components/ui/wavy-background";
+import { AnimatedCircularProgressBar } from "@/components/ui/animated-circular-progress-bar";
 import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
 
 import { CopyButton } from "@/components/CopyButton";
 import { RefineButton } from "@/components/RefineButton";
 
-import { check, getChromeVersion } from "@/lib/utils";
-import { AnimatedCircularProgressBar } from "@/components/ui/animated-circular-progress-bar";
 import { useDownload } from "@/hooks/useDownload";
+import { check, getChromeVersion } from "@/lib/utils";
+import { getThreeRandomSuggestions } from "@/lib/suggestions";
+import { Separator } from "@/components/ui/separator";
 
 export default function Home() {
 
-  const [isSupported, setIsSupported] = useState(false);
+  const [isSupported, setIsSupported] = useState<boolean>(false);
   const [isAvailable, setIsAvailableModels] = useState<string>("downloadable");
+  const [isRefining, setIsRefining] = useState<boolean>(false);
+  const [suggestions] = useState<string[]>(() => getThreeRandomSuggestions());
+  const { progress, isDownloading, startDownload } = useDownload();
 
-  const { progress, isDownloading, startDownload } = useDownload(550);
-
-  function download() {
-    startDownload();
+  function addSuggestionToTextArea(suggestion: string) {
+    const textareaEl = document.getElementById(
+      "prompt-input"
+    ) as HTMLTextAreaElement;
+    textareaEl.value = suggestion;
+    textareaEl.focus();
   }
-
 
   useEffect(() => {
     setIsSupported(getChromeVersion(138));
@@ -36,7 +42,7 @@ export default function Home() {
   }, []);
 
   return (
-    <WavyBackground className="w-full min-h-screen flex flex-col items-center">
+    <WavyBackground className="w-full min-h-screen flex flex-col items-center" speed={isRefining ? "thinking" : "slow"}>
       <div className="h-20 w-full p-3 flex gap-1.5">
         <Button size="sm" variant="outline" asChild>
           <Link href="https://cerebric.fillout.com/feedback" target="_blank" rel="noopener noreferrer">
@@ -117,17 +123,30 @@ export default function Home() {
           </h4>
         </div>
         {isSupported && isAvailable === "available" ?
-          <div className="group flex flex-col gap-2 pb-1.5 pr-1.5 bg-transparent backdrop-blur-3xl w-full rounded-lg border border-foreground/20 transition-all">
-            <div className="relative flex flex-1 items-center">
-              <Textarea
-                id="prompt-input"
-                placeholder="Start typing..."
-                className="resize-none border-none dark:bg-transparent focus-visible:border-none focus-visible:ring-0"
-              />
+          <div className="w-full flex flex-col gap-3">
+            <div className="group flex flex-col gap-2 pb-1.5 pr-1.5 bg-transparent backdrop-blur-3xl w-full rounded-lg border border-foreground/20 transition-all">
+              <div className="relative flex flex-1 items-center">
+                <Textarea
+                  id="prompt-input"
+                  placeholder="Start typing..."
+                  className="resize-none border-none dark:bg-transparent focus-visible:border-none focus-visible:ring-0"
+                />
+              </div>
+              <div className="flex h-full p-0 justify-end items-end gap-2">
+                <CopyButton />
+                <RefineButton isRefining={isRefining} setIsRefining={setIsRefining} />
+              </div>
             </div>
-            <div className="flex h-full p-0 justify-end items-end gap-2">
-              <CopyButton />
-              <RefineButton />
+            <div className="flex flex-col gap-1.5 max-w-2xl w-full">
+              {suggestions.map((suggestion) => (
+                <ul key={suggestion} className="" onClick={() => addSuggestionToTextArea(suggestion)}>
+                  <li className="text-sm p-1.5 rounded-md text-muted-foreground hover:text-foreground cursor-pointer select-none flex items-center gap-2">
+                    <Plus className="size-4" />
+                    {suggestion}
+                  </li>
+                  <Separator className="mt-1 bg-muted" />
+                </ul>
+              ))}
             </div>
           </div> : isSupported && isAvailable === "unavailable" ?
             <div className="w-full max-w-md p-4 bg-linear-to-br from-red-950 to-zinc-950 border-none rounded-lg flex flex-col items-center gap-3">
@@ -140,7 +159,7 @@ export default function Home() {
               </p>
             </div> : isSupported && isAvailable === "downloadable" ?
               <div>
-                <Button variant={"outline"} size="lg" className="w-fit rounded-full" onClick={download} disabled={isDownloading}>
+                <Button variant={"outline"} size="lg" className="w-fit rounded-full" onClick={startDownload} disabled={isDownloading}>
                   Download Language Model API
                   {isDownloading ?
                     <AnimatedCircularProgressBar value={progress}

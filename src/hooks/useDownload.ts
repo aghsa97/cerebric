@@ -1,38 +1,14 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
-type LanguageModelMessage = { role: string; content: string };
-type LanguageModelResponse = string;
-type LanguageModelType = {
-  prompt(messages: LanguageModelMessage[]): Promise<LanguageModelResponse>;
-  promptStreaming(messages: LanguageModelMessage[]): AsyncIterable<string>;
-  destroy(): void;
-};
-declare global {
-  interface GlobalThis {
-    LanguageModel?: {
-      availability?: () => Promise<string>;
-      create?: (options?: unknown) => Promise<LanguageModelType>;
-      destroy?: () => void;
-    };
-  }
-}
+import { LanguageModel } from "@/lib/utils";
 
-const LanguageModel = (
-  globalThis as typeof globalThis & {
-    LanguageModel?: {
-      availability?: () => Promise<string>;
-      create?: (options?: unknown) => Promise<LanguageModelType>;
-      destroy?: () => void;
-    };
-  }
-).LanguageModel;
-
-export function useDownload(speed = 100) {
+export function useDownload() {
   const [progress, setProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
 
   const startDownload = async () => {
-    console.log("Starting fake download...");
+    toast.info("Starting model download...");
     setProgress(0);
     setIsDownloading(true);
   };
@@ -40,6 +16,7 @@ export function useDownload(speed = 100) {
   async function dowloadModel() {
     if (!LanguageModel?.create) {
       console.error("LanguageModel API is not available.");
+      toast.error("LanguageModel API is not available.");
       setIsDownloading(false);
       return;
     }
@@ -48,9 +25,6 @@ export function useDownload(speed = 100) {
       monitor(m: any) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         m.addEventListener("downloadprogress", (e: any) => {
-          console.log(`Downloaded ${e.loaded * 100}%`);
-          console.log("event", e);
-          console.log("monitor", m);
           setProgress(e.loaded * 100);
         });
       },
@@ -65,7 +39,7 @@ export function useDownload(speed = 100) {
       await dowloadModel();
     }
     download();
-  }, [isDownloading, speed]);
+  }, [isDownloading]);
 
   return { progress, isDownloading, startDownload };
 }
