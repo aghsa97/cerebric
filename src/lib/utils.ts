@@ -107,6 +107,7 @@ export async function refinePrompt() {
       }
     }
     textareaEl.value = textareaEl.value.trim();
+    toast.success("Prompt refined! Now paste it into your AI tool.");
   } catch (err) {
     console.error("LanguageModel streaming error:", err);
     toast.error("Error refining prompt: " + String(err));
