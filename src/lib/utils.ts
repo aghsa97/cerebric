@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { toast } from "sonner";
+import { SYSTEM_PROMPT } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -42,7 +43,7 @@ export async function check() {
   }
 }
 
-async function initLanguageModel() {
+async function initLanguageModel(systemPrompt: string = SYSTEM_PROMPT) {
   const avail = await check();
   if (avail === "unavailable" || !LanguageModel?.create) {
     toast.error("LanguageModel API is unavailable in this browser.");
@@ -52,16 +53,7 @@ async function initLanguageModel() {
     initialPrompts: [
       {
         role: "system",
-        content: `SYSTEM:
-You are a prompt engineer. Your goal is to provide better prompts based on the user’s 
-initial prompt. Each answer should include a revised, improved prompt only and nothing more than the improved prompt. Your improvements should focus on clarity, specificity, and detail to ensure the best possible output from an AI model.
-Here are some guidelines to follow when refining prompts:
-
-1. Include a role definition at the start of the conversation to set the context.
-2. Be Specific: Clearly define what you want the AI to do. Avoid vague terms.
-
-finally, always output only the refined prompt without any additional commentary or explanation as plaintext.
-`,
+        content: `SYSTEM: ${systemPrompt}`,
       },
     ],
   });
@@ -75,6 +67,8 @@ export async function refinePrompt() {
     "prompt-input"
   ) as HTMLTextAreaElement;
   const promptText = textareaEl.value.trim();
+  const user_system_prompt = localStorage.getItem("system_prompt");
+  const systemPrompt = user_system_prompt ? user_system_prompt : SYSTEM_PROMPT;
 
   if (!promptText) {
     console.warn("Please enter a prompt to refine.");
@@ -82,7 +76,7 @@ export async function refinePrompt() {
     return;
   }
 
-  const session = await initLanguageModel();
+  const session = await initLanguageModel(systemPrompt);
   if (!session) {
     console.error("Cannot refine: LanguageModel API unavailable.");
     toast.error("Cannot refine: LanguageModel API unavailable.");
@@ -93,7 +87,10 @@ export async function refinePrompt() {
     const responseStream = session.promptStreaming([
       {
         role: "user",
-        content: `Refine the following user prompt for optimal clarity, detail, and effectiveness in a creative generation task. Return ONLY the refined prompt, without any introductory or concluding text: "${promptText}"`,
+        content:
+          systemPrompt === SYSTEM_PROMPT
+            ? `Refine the following user prompt for optimal clarity, detail, and effectiveness in a creative generation task. Return ONLY the refined prompt, without any introductory or concluding text: "${promptText}"`
+            : `${promptText}`,
       },
     ]);
 

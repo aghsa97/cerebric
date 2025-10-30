@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, HandHeart, HardDriveDownload, HeartHandshake, MessageCircleWarning, Plus } from "lucide-react";
+import { ArrowUpRight, HandHeart, HardDriveDownload, HeartHandshake, MessageCircleWarning, MonitorCog, Plus, RotateCcw, Siren } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +18,10 @@ import { useDownload } from "@/hooks/useDownload";
 import { check, getChromeVersion } from "@/lib/utils";
 import { getThreeRandomSuggestions } from "@/lib/suggestions";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { SYSTEM_PROMPT } from "@/lib/constants";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 
 export default function Home() {
 
@@ -24,6 +29,8 @@ export default function Home() {
   const [isAvailable, setIsAvailableModels] = useState<string>("downloadable");
   const [isRefining, setIsRefining] = useState<boolean>(false);
   const [suggestions] = useState<string[]>(() => getThreeRandomSuggestions());
+  const [systemPrompt, setSystemPrompt] = useState<string>(SYSTEM_PROMPT);
+
   const { progress, isDownloading, startDownload } = useDownload();
 
   function addSuggestionToTextArea(suggestion: string) {
@@ -34,11 +41,34 @@ export default function Home() {
     textareaEl.focus();
   }
 
+  function save_system_prompt() {
+    const el = document.getElementById("system-prompt-input") as HTMLTextAreaElement;
+    const newSystemPrompt = el.value.trim();
+    if (!newSystemPrompt) {
+      console.warn("System prompt cannot be empty.");
+      return;
+    }
+
+    localStorage.setItem("system_prompt", newSystemPrompt);
+    toast.success("System prompt saved!");
+  }
+
+  function reset_system_prompt() {
+    const el = document.getElementById("system-prompt-input") as HTMLTextAreaElement;
+    el.value = SYSTEM_PROMPT;
+    localStorage.removeItem("system_prompt");
+    toast.success("System prompt reset to default!");
+  }
+
   useEffect(() => {
     setIsSupported(getChromeVersion(138));
     (async () =>
       setIsAvailableModels(await check())
     )();
+    const savedSystemPrompt = localStorage.getItem("system_prompt");
+    if (savedSystemPrompt) {
+      setSystemPrompt(savedSystemPrompt);
+    }
   }, []);
 
   return (
@@ -132,7 +162,53 @@ export default function Home() {
                   className="min-h-16 resize-none border-none shadow-none dark:bg-transparent focus-visible:border-none focus-visible:ring-0"
                 />
               </div>
-              <div className="flex h-full p-0 justify-end items-end gap-2">
+              <div className="flex h-full p-0 justify-end items-end gap-2 pl-1.5">
+                <Dialog>
+                  <div className="mr-auto">
+                    <DialogTrigger asChild>
+                      <Button size={"icon-sm"} variant="outline">
+                        <MonitorCog />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="overflow-y-auto max-h-[95vh]">
+                      <DialogHeader>
+                        <DialogTitle>System prompt</DialogTitle>
+                        <DialogDescription>
+                          Customize the system prompt to better suit your needs.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="flex flex-col gap-1.5">
+                        <Alert variant={"destructive"} className="bg-linear-to-br from-red-950 to-zinc-950 border-none rounded-md">
+                          <Siren />
+                          <AlertTitle>
+                            Changing this may affect the quality of the refined prompts.
+                          </AlertTitle>
+                        </Alert>
+                        <p className="text-muted-foreground text-xs">
+                          Don&apos;t change this unless you know what you&apos;re doing.
+                        </p>
+                      </div>
+                      <div className="grid gap-4">
+                        <div className="grid gap-1.5">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="system-prompt-label">Prompt:</Label>
+                            <div className="flex items-center">
+                              <Button variant={"outline"} size={"sm"} className="group" onClick={reset_system_prompt}><RotateCcw className="group-hover:-rotate-180 transition-all duration-500" /> Reset system prompt</Button>
+                            </div>
+                          </div>
+                          <Textarea id="system-prompt-input" defaultValue={systemPrompt} />
+                        </div>
+                      </div>
+
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button size="sm" variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Button size="sm" onClick={save_system_prompt}>Save changes</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </div>
+                </Dialog>
                 <CopyButton />
                 <RefineButton isRefining={isRefining} setIsRefining={setIsRefining} />
               </div>
